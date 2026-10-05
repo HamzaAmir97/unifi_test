@@ -2,23 +2,19 @@
 
 namespace App\Providers;
 
+use App\Mock\Clock\MockClock;
+use App\Mock\Manifest\Manifest;
+use App\Mock\Settings\MockSettings;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->singleton(Manifest::class, fn () => new Manifest(Manifest::path()));
+        $this->app->singleton(MockSettings::class);
+        $this->app->singleton(MockClock::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(): void
-    {
-        //
-    }
+    public function boot(): void {}
 }

@@ -40,4 +40,28 @@ class SwaggerTest extends TestCase
         $this->assertSame(['name', 'timeLimitMinutes'], $generate['requestBody']['content']['application/json']['schema']['required']);
         $this->assertStringContainsString('Filterable properties', $doc['paths']['/v1/sites/{siteId}/hotspot/vouchers']['get']['description']);
     }
+
+    public function test_the_control_plane_is_documented_without_security(): void
+    {
+        $doc = $this->getJson('/openapi.json')->json();
+        $control = array_filter($doc['paths'], fn ($k) => str_starts_with($k, '/__mock'), ARRAY_FILTER_USE_KEY);
+
+        $operations = 0;
+        foreach ($control as $item) {
+            foreach (array_diff_key($item, ['servers' => true]) as $op) {
+                $operations++;
+                $this->assertSame([], $op['security']);
+                $this->assertSame(['Mock control plane'], $op['tags']);
+            }
+        }
+        $this->assertSame(13, $operations);
+    }
+
+    public function test_the_committed_control_collection_is_generated_from_the_same_list(): void
+    {
+        $committed = file_get_contents(base_path('postman/UniFi-Mock-Control.postman_collection.json'));
+        $this->artisan('mock:build-control-collection')->assertSuccessful();
+
+        $this->assertSame($committed, file_get_contents(base_path('postman/UniFi-Mock-Control.postman_collection.json')));
+    }
 }

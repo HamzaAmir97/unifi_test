@@ -39,9 +39,12 @@ abstract class ManifestFormRequest extends FormRequest
         return [];
     }
 
-    /** FR-026: unknown type/action values warn, or refuse in strict mode. */
+    /**
+     * FR-026: unknown type/action values warn, or refuse in strict mode. The warning goes on
+     * the ORIGINAL request (the one RecordRequest logs), not on this form-request copy.
+     */
     public function after(): array
     {
-        return [fn (Validator $validator) => app(EnumWarden::class)->inspect($this, $this->all(), $validator)];
+        return [fn (Validator $validator) => app(EnumWarden::class)->inspect(app('request'), $this->all(), $validator)];
     }
 }

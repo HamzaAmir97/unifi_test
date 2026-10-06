@@ -58,7 +58,7 @@ class NoSecretsTest extends TestCase
         // The mock environment may add control-plane variables, never anything else the
         // integration collection reads.
         $this->assertSame([], array_values(array_diff($prod, $mock)));
-        $this->assertSame([], array_values(array_diff($mock, [...$prod, 'controlBase'])));
+        $this->assertSame([], array_values(array_diff($mock, [...$prod, 'controlBase', 'clientId'])));
     }
 
     public function test_no_tracked_text_file_contains_a_key_shaped_string(): void

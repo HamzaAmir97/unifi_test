@@ -12,6 +12,6 @@ class SiteController extends IntegrationController
     /** GET /v1/sites — the collection ships `filter` disabled here; a filter that is sent is still honoured. */
     public function index(Request $request, SitePresenter $presenter): JsonResponse
     {
-        return $this->listResponse($request, 'list-local-sites', $presenter->presentMany($this->store->all(ResourceType::Site)));
+        return $this->listResponse($request, 'list-local-sites', $this->store->all(ResourceType::Site), $presenter);
     }
 }

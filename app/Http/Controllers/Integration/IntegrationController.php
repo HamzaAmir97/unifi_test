@@ -9,9 +9,11 @@ use App\Mock\Filter\FilterEvaluator;
 use App\Mock\Filter\FilterParser;
 use App\Mock\Manifest\Manifest;
 use App\Mock\Pagination\Paginator;
+use App\Mock\Presenters\Presenter;
 use App\Mock\Store\ResourceStore;
 use App\Mock\Unverified;
 use App\Models\MockResource;
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -42,43 +44,70 @@ abstract class IntegrationController extends Controller
     }
 
     /**
-     * Filter (only what the manifest declares for $entryId) then paginate.
+     * A list: filter on each resource's full view (only what the manifest declares for
+     * $entryId), paginate, then present the page.
      *
-     * @param  list<array<string, mixed>>  $items  presented objects, in order
+     * @param  iterable<MockResource>  $resources  in order
+     * @param  (Closure(MockResource): array<string, mixed>)|null  $present  defaults to $presenter->present()
      */
-    protected function listResponse(Request $request, string $entryId, array $items): JsonResponse
+    protected function listResponse(Request $request, string $entryId, iterable $resources, Presenter $presenter, ?Closure $present = null): JsonResponse
     {
-        return new JsonResponse($this->page($request, $entryId, $items));
-    }
+        $rows = [];
+        foreach ($resources as $resource) {
+            $rows[] = ['resource' => $resource, 'view' => $presenter->view($resource)];
+        }
+        $rows = $this->filtered($request, $entryId, $rows);
 
-    /** @param list<array<string, mixed>> $items */
-    protected function page(Request $request, string $entryId, array $items): array
-    {
-        $items = $this->filtered($request, $entryId, $items);
-        $entry = $this->manifest->entry($entryId);
-
-        return (new Paginator)->paginate(
-            $items,
+        $page = (new Paginator)->paginate(
+            $rows,
             $request->query('offset'),
             $request->query('limit'),
-            $entry['defaultLimit'] ?? Unverified::DEFAULT_LIMIT,
+            $this->manifest->entry($entryId)['defaultLimit'] ?? Unverified::DEFAULT_LIMIT,
         );
+        $present ??= fn (MockResource $r) => $presenter->present($r);
+        $page['data'] = array_map(fn ($row) => $present($row['resource']), $page['data']);
+
+        return new JsonResponse($page);
     }
 
-    /** @param list<array<string, mixed>> $items */
-    protected function filtered(Request $request, string $entryId, array $items): array
+    /**
+     * @param  list<array{resource: MockResource, view: array<string, mixed>}>  $rows
+     * @return list<array{resource: MockResource, view: array<string, mixed>}>
+     */
+    protected function filtered(Request $request, string $entryId, array $rows, bool $required = false): array
     {
         $filter = $request->query('filter');
-        if ($filter === null) {
-            return $items;
+        if ($filter === null || $filter === '') {
+            if ($required) {
+                throw MockError::invalid('The filter parameter is required.');
+            }
+
+            return $rows;
         }
         if (! is_string($filter)) {
             throw MockError::filterInvalid('filter must be a single string.');
         }
 
         $evaluator = new FilterEvaluator($this->manifest->filterTable($entryId));
+        $node = (new FilterParser)->parse($filter);
+        $evaluator->validate($node);
 
-        return $evaluator->filter((new FilterParser)->parse($filter), $items);
+        return array_values(array_filter($rows, fn ($row) => $evaluator->matches($node, $row['view'])));
+    }
+
+    /** The `force` query parameter: absent = false; otherwise it must be a boolean. */
+    protected function force(Request $request): bool
+    {
+        $force = $request->query('force');
+        if ($force === null || $force === '') {
+            return false;
+        }
+
+        return match (strtolower((string) $force)) {
+            'true' => true,
+            'false' => false,
+            default => throw MockError::invalid('force must be true or false.'),
+        };
     }
 
     protected function emptyText(): Response

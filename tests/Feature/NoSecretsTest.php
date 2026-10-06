@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\BuildMockEnvironment;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -55,10 +56,10 @@ class NoSecretsTest extends TestCase
         sort($mock);
         sort($prod);
         $this->assertSame(['apiKey', 'baseUrl', 'consoleId', 'siteId'], $prod);
-        // The mock environment may add control-plane variables, never anything else the
-        // integration collection reads.
+        // The mock environment has the same four, plus mock-only helpers (control base, reset
+        // switch, default-scenario ids) that the production template deliberately lacks.
         $this->assertSame([], array_values(array_diff($prod, $mock)));
-        $this->assertSame([], array_values(array_diff($mock, [...$prod, 'controlBase', 'clientId'])));
+        $this->assertSame([], array_values(array_diff($mock, [...$prod, ...BuildMockEnvironment::MOCK_ONLY])));
     }
 
     public function test_no_tracked_text_file_contains_a_key_shaped_string(): void

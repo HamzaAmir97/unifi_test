@@ -60,28 +60,28 @@ final class Unverified
     /** G10 — status answered when the `consoleId` in the path is not the mock's. */
     public const CONSOLE_MISMATCH_STATUS = 404;
 
-    /** Refusal status — deleting a network still referenced, without `force=true`. */
+    /** G1 — refusal status: deleting a network still referenced, without `force=true`. */
     public const NETWORK_IN_USE_STATUS = 409;
 
-    /** Refusal status — deleting the default network. */
+    /** G1 — refusal status: deleting the default network. */
     public const DEFAULT_NETWORK_DELETE_STATUS = 409;
 
-    /** Refusal status — editing or deleting a system-defined firewall zone. */
+    /** G1 — refusal status: editing or deleting a system-defined firewall zone. */
     public const SYSTEM_ZONE_EDIT_STATUS = 400;
 
-    /** Refusal status — an ordering PUT whose ids are not exactly the current set. */
+    /** G1 — refusal status: an ordering PUT whose ids are not exactly the current set. */
     public const ORDERING_MISMATCH_STATUS = 400;
 
-    /** Refusal status — a duplicate `vlanId` within a site. */
+    /** G1 — refusal status: a duplicate `vlanId` within a site. */
     public const DUPLICATE_VLAN_STATUS = 400;
 
-    /** Refusal status — redeeming an expired voucher (control plane). */
+    /** G1 — refusal status: redeeming an expired voucher (control plane). */
     public const REDEEM_EXPIRED_STATUS = 409;
 
-    /** Refusal status — redeeming a voucher whose guest limit is reached (control plane). */
+    /** G1 — refusal status: redeeming a voucher whose guest limit is reached (control plane). */
     public const REDEEM_FULL_STATUS = 409;
 
-    /** Refusal status — adding a pending device whose MAC already exists (control plane). */
+    /** G1 — refusal status: adding a pending device whose MAC already exists (control plane). */
     public const DUPLICATE_MAC_STATUS = 409;
 
     /** G9 — no rate limit is enforced; throttling exists only as an injected fault. */
@@ -127,7 +127,7 @@ final class Unverified
     /** G5 — a device stays UPDATING this many seconds after a RESTART action. */
     public const DEVICE_RESTART_SECONDS = 60;
 
-    /** Refusal status — deleting a firewall zone still used by a policy. */
+    /** G1 — refusal status: deleting a firewall zone still used by a policy. */
     public const ZONE_IN_USE_STATUS = 409;
 
     /** G4 — the state an adopted device takes (the collection lists only transitional states). */

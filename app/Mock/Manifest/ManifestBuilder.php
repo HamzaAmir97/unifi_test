@@ -2,6 +2,7 @@
 
 namespace App\Mock\Manifest;
 
+use App\Mock\Postman\PostmanTests;
 use Illuminate\Support\Str;
 
 /**
@@ -25,6 +26,9 @@ final class ManifestBuilder
         $entries = [];
 
         foreach ($collection['item'] as $group) {
+            if ($group['name'] === PostmanTests::READ_ONLY_FOLDER) {
+                continue; // copies of GET requests added for production checks, not part of the contract
+            }
             foreach ($group['item'] ?? [] as $item) {
                 if (isset($item['request'])) {
                     $entries[] = $this->entry($group['name'], $item);

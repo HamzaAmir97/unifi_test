@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Mock\Manifest\CollectionSanitizer;
+use App\Mock\Postman\PostmanTests;
 use Illuminate\Console\Command;
 
 /**
@@ -63,11 +64,14 @@ class ImportCollection extends Command
     {
         $out = [];
         foreach ($collection['item'] as $group) {
+            if ($group['name'] === PostmanTests::READ_ONLY_FOLDER) {
+                continue; // added by mock:postman-tests; not part of the contract
+            }
             foreach ($group['item'] ?? [] as $item) {
                 if (! isset($item['request'])) {
-                    continue; // folders added later (e.g. the read-only folder) are not part of the contract
+                    continue;
                 }
-                $out[] = [
+                $out[] = [ // `event` (pm.test scripts) is deliberately excluded: adding tests changes no request
                     'group' => $group['name'],
                     'name' => $item['name'],
                     'request' => $item['request'],

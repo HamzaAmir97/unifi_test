@@ -19,13 +19,13 @@ final class InfrastructureBuilder
     public function build(MockResource $site, array $nets, int $block = 0): void
     {
         $s = $site->uuid;
-        $lab = $this->kit->add(ResourceType::Network, $s, 'lab', [
+        $this->kit->add(ResourceType::Network, $s, 'lab', [
             'name' => 'Lab', 'enabled' => false, 'management' => 'GATEWAY', 'vlanId' => 50, 'default' => false,
             'metadata' => ['origin' => 'USER_DEFINED'],
         ]);
 
         $devices = $this->devices($s, $block);
-        $this->firewall($s, $nets, $lab);
+        $this->firewall($s, $nets);
         $this->acl($s, $nets);
         $this->dns($s);
         $this->references($s, $devices);
@@ -114,7 +114,7 @@ final class InfrastructureBuilder
         return $ports;
     }
 
-    private function firewall(string $s, array $nets, MockResource $lab): void
+    private function firewall(string $s, array $nets): void
     {
         $zone = fn (string $key, string $name, array $networkIds, bool $system) => $this->kit->add(ResourceType::FirewallZone, $s, $key, [
             'name' => $name, 'networkIds' => $networkIds,
@@ -123,7 +123,7 @@ final class InfrastructureBuilder
         $internal = $zone('internal', 'Internal', [$nets['lan']->uuid, $nets['members']->uuid], true);
         $external = $zone('external', 'External', [], true);
         $hotspot = $zone('hotspot', 'Hotspot', [$nets['guest']->uuid], true);
-        $zone('lab', 'Lab', [$lab->uuid], false);
+        $zone('lab', 'Lab', [], false); // the Lab network stays unreferenced, so it can be deleted without force
 
         $policy = function (string $key, string $name, MockResource $from, MockResource $to, string $action, bool $system, string $group, array $extra = []) use ($s) {
             return $this->kit->add(ResourceType::FirewallPolicy, $s, $key, [

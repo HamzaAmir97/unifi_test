@@ -82,7 +82,7 @@ final class FilterEvaluator
     private function call(FilterNode $node, array $item): bool
     {
         [$type, $isSet] = PropertyType::parse($this->declared[$node->property]['type']);
-        $raw = data_get($item, $node->property);
+        $raw = self::resolve($item, explode('.', $node->property), $isSet);
         $args = array_map(fn ($a) => $type->normalize($a), $node->args);
 
         if ($node->function === 'isNull') {
@@ -121,6 +121,37 @@ final class FilterEvaluator
             'like' => is_string($value) && preg_match($this->likePattern((string) $args[0]), $value) === 1,
             default => false,
         };
+    }
+
+    /**
+     * A dotted path that may cross lists: `members.deviceId` over a list of members yields
+     * every member's deviceId. For a SET property the result is flattened to a list.
+     *
+     * @param  list<string>  $segments
+     */
+    private static function resolve(mixed $value, array $segments, bool $isSet): mixed
+    {
+        foreach ($segments as $i => $segment) {
+            if (is_array($value) && array_is_list($value) && $value !== [] && is_array($value[0])) {
+                $rest = array_slice($segments, $i);
+                $out = [];
+                foreach ($value as $element) {
+                    $v = self::resolve($element, $rest, $isSet);
+                    if ($v === null) {
+                        continue;
+                    }
+                    is_array($v) && array_is_list($v) ? array_push($out, ...$v) : $out[] = $v;
+                }
+
+                return $out;
+            }
+            if (! is_array($value) || ! array_key_exists($segment, $value)) {
+                return null;
+            }
+            $value = $value[$segment];
+        }
+
+        return $value;
     }
 
     private function sameSet(array $a, array $b): bool

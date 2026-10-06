@@ -18,7 +18,7 @@ class ScenarioResetTest extends TestCase
     private function snapshot(): array
     {
         return MockResource::query()->orderBy('uuid')->get()
-            ->map(fn ($r) => [$r->type, $r->site_uuid, $r->uuid, collect($r->payload)->except(['createdAt', 'activatedAt', 'connectedAt'])->all()])
+            ->map(fn ($r) => [$r->type, $r->site_uuid, $r->uuid, collect($r->payload)->except(['createdAt', 'activatedAt', 'connectedAt', 'adoptedAt', 'provisionedAt'])->all()])
             ->all();
     }
 

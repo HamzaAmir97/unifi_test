@@ -20,6 +20,8 @@ class FilterEvaluatorTest extends TestCase
         'access.type' => ['type' => 'STRING', 'functions' => ['eq']],
         'networkIds' => ['type' => 'SET(UUID)', 'functions' => ['contains', 'containsAny', 'containsAll', 'containsExactly', 'isEmpty']],
         'tags' => ['type' => 'SET(STRING)', 'functions' => ['contains', 'isEmpty']],
+        'members.deviceId' => ['type' => 'SET(UUID)', 'functions' => ['contains', 'containsAll']],
+        'members.portIdxs' => ['type' => 'SET(INTEGER)', 'functions' => ['contains']],
     ];
 
     private const A = '11111111-1111-4111-8111-111111111111';
@@ -30,9 +32,11 @@ class FilterEvaluatorTest extends TestCase
     {
         return [
             ['id' => self::A, 'name' => 'Guest WiFi', 'vlanId' => 10, 'limit' => null, 'ratio' => 0.5, 'enabled' => true,
-                'createdAt' => '2026-01-01T10:00:00.000Z', 'access' => ['type' => 'GUEST'], 'networkIds' => [self::A, self::B], 'tags' => []],
+                'createdAt' => '2026-01-01T10:00:00.000Z', 'access' => ['type' => 'GUEST'], 'networkIds' => [self::A, self::B], 'tags' => [],
+                'members' => [['deviceId' => self::A, 'portIdxs' => [1, 2]], ['deviceId' => self::B, 'portIdxs' => [3]]]],
             ['id' => self::B, 'name' => 'Office', 'vlanId' => 20, 'limit' => 3, 'ratio' => 1.25, 'enabled' => false,
-                'createdAt' => '2026-02-01T10:00:00.000Z', 'access' => ['type' => 'DEFAULT'], 'networkIds' => [self::B], 'tags' => ['x']],
+                'createdAt' => '2026-02-01T10:00:00.000Z', 'access' => ['type' => 'DEFAULT'], 'networkIds' => [self::B], 'tags' => ['x'],
+                'members' => [['deviceId' => self::B, 'portIdxs' => [9]]]],
         ];
     }
 
@@ -82,6 +86,13 @@ class FilterEvaluatorTest extends TestCase
         $this->assertSame(['Guest WiFi'], $this->names("networkIds.containsAll('".self::A."', '".self::B."')"));
         $this->assertSame(['Office'], $this->names("networkIds.containsExactly('".self::B."')"));
         $this->assertSame(['Guest WiFi'], $this->names('tags.isEmpty()'));
+    }
+
+    public function test_paths_through_lists(): void
+    {
+        $this->assertSame(['Guest WiFi'], $this->names("members.deviceId.contains('".self::A."')"));
+        $this->assertSame(['Guest WiFi'], $this->names("members.deviceId.containsAll('".self::A."', '".self::B."')"));
+        $this->assertSame(['Guest WiFi'], $this->names('members.portIdxs.contains(3)'));
     }
 
     public function test_combinators(): void

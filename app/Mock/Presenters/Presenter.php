@@ -92,15 +92,18 @@ abstract class Presenter
             }
             $out[$key] = $values[$key];
         }
-        foreach ([...$fields['optional'], ...$this->extraKeys()] as $key) {
-            if (array_key_exists($key, $out)) {
-                continue;
-            }
+        foreach ($fields['optional'] as $key) {
             $value = $values[$key] ?? null;
             if ($value !== null) {
                 $out[$key] = $value;
             } elseif ($mode === OptionalFieldMode::Null) {
                 $out[$key] = null;
+            }
+        }
+        // Extra keys are not in the collection's field set: returned only when they have a value.
+        foreach ($this->extraKeys() as $key) {
+            if (! array_key_exists($key, $out) && ($values[$key] ?? null) !== null) {
+                $out[$key] = $values[$key];
             }
         }
 

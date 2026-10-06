@@ -3,7 +3,6 @@
 namespace Tests\Feature\Core;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -29,11 +28,8 @@ class ErrorEnvelopeTest extends TestCase
     public function test_validation_failure_is_400_never_422(): void
     {
         $site = $this->seedSite();
-        // generate-vouchers is a real FormRequest from G2 on; until then any body route proves the handler.
-        Route::post('__test/validate', fn (Request $r) => $r->validate(['name' => 'required']))->middleware('api');
 
-        $this->assertEnvelope($this->postJson('/__test/validate', []), 400);
-        $this->assertNotNull($site);
+        $this->assertEnvelope($this->unifi('POST', "/v1/sites/{$site->uuid}/hotspot/vouchers", ['name' => 'no time limit']), 400);
     }
 
     public function test_unexpected_failure_is_500_without_a_trace(): void

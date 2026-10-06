@@ -14,7 +14,9 @@ final class LargeScenario implements Scenario
     {
         $b = new SiteBuilder($kit);
         $site = $b->site('APEX Coworking', 'default');
-        $b->network($site);
+        $nets = $b->network($site);
         $b->manyVouchers($site, self::VOUCHERS);
+        (new InfrastructureBuilder($kit))->build($site, $nets);
+        ReferenceData::build($kit);
     }
 }

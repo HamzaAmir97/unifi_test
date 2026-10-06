@@ -29,7 +29,6 @@ final class Unverified
         'method_not_allowed' => 'api.request.method-not-allowed',
         'conflict' => 'api.resource.conflict',
         'internal' => 'api.internal-error',
-        'not_mocked_yet' => 'api.mock.not-mocked-yet',
         'fault' => 'api.mock.injected-fault',
         'timeout' => 'api.mock.injected-timeout',
     ];
@@ -114,7 +113,8 @@ final class Unverified
         'type' => ['GUEST', 'WIRED', 'WIRELESS', 'VPN', 'STANDARD', 'IOT_OPTIMIZED', 'WPA2_PERSONAL', 'WPA3_PERSONAL', 'OPEN',
             'NETWORK', 'ALL_DEVICES', 'DEVICES', 'HOTSPOT', 'ALLOW', 'BLOCK', 'REJECT', 'ANY', 'NETWORKS', 'IP_ADDRESSES',
             'IPV4', 'MAC', 'A_RECORD', 'AAAA_RECORD', 'CNAME_RECORD', 'MX_RECORD', 'TXT_RECORD', 'SRV_RECORD', 'FORWARD_DOMAIN',
-            'PORTS', 'IPV4_ADDRESSES', 'IPV6_ADDRESSES', 'DOMAINS', 'SPECIFIC', 'NATIVE'],
+            'PORTS', 'IPV4_ADDRESSES', 'IPV6_ADDRESSES', 'DOMAINS', 'SPECIFIC', 'NATIVE', 'STATIC', 'LACP',
+            'L2TP', 'WIREGUARD', 'OPENVPN', 'IPSEC', 'IP_ADDRESS', 'PORT', 'NETWORK_ID'],
         'mode' => ['ALWAYS', 'AUTO', 'OFF'],
         'ipVersion' => ['IPV4', 'IPV6', 'IPV4_AND_IPV6'],
         'action' => ['RESTART', 'POWER_CYCLE', 'AUTHORIZE_GUEST_ACCESS', 'UNAUTHORIZE_GUEST_ACCESS', 'ALLOW', 'BLOCK'],
@@ -126,6 +126,26 @@ final class Unverified
 
     /** G5 — a device stays UPDATING this many seconds after a RESTART action. */
     public const DEVICE_RESTART_SECONDS = 60;
+
+    /** Refusal status — deleting a firewall zone still used by a policy. */
+    public const ZONE_IN_USE_STATUS = 409;
+
+    /** G4 — the state an adopted device takes (the collection lists only transitional states). */
+    public const ADOPTED_DEVICE_STATE = 'ONLINE';
+
+    /** G4 — which DNS policy fields apply to each `type` (the collection declares 17 filterable fields, no mapping). */
+    public const DNS_FIELDS_BY_TYPE = [
+        'A_RECORD' => ['domain', 'ipv4Address', 'ttlSeconds'],
+        'AAAA_RECORD' => ['domain', 'ipv6Address', 'ttlSeconds'],
+        'CNAME_RECORD' => ['domain', 'targetDomain', 'ttlSeconds'],
+        'MX_RECORD' => ['domain', 'mailServerDomain', 'priority'],
+        'TXT_RECORD' => ['domain', 'text'],
+        'SRV_RECORD' => ['domain', 'serverDomain', 'service', 'protocol', 'port', 'priority', 'weight'],
+        'FORWARD_DOMAIN' => ['domain', 'ipAddress'],
+    ];
+
+    /** G4 — the reference type a network reference names for broadcasts and zones (only CLIENT and OSPF_ROUTE are seen). */
+    public const NETWORK_REFERENCE_TYPES = ['WIFI_BROADCAST', 'FIREWALL_ZONE', 'CLIENT'];
 
     /** G1 — a timed-out fault answers this status after sleeping. */
     public const TIMEOUT_STATUS = 504;

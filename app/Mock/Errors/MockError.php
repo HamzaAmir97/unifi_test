@@ -52,9 +52,4 @@ final class MockError extends RuntimeException
             default => new self($status, Unverified::ERROR_CODES['request_invalid'], $message),
         };
     }
-
-    public static function notMockedYet(string $name): self
-    {
-        return new self(501, Unverified::ERROR_CODES['not_mocked_yet'], "\"{$name}\" is in the collection but not mocked yet.");
-    }
 }

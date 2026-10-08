@@ -13,6 +13,23 @@ class SwaggerTest extends TestCase
         $this->get('/docs')->assertOk()->assertSee('swagger-ui', false)->assertSee('openapi.json', false);
     }
 
+    public function test_the_local_key_is_pre_filled_outside_production(): void
+    {
+        config(['unifi_mock.api_key' => 'prefill-probe-key']);
+
+        $this->get('/docs')->assertOk()
+            ->assertSee("preauthorizeApiKey('ApiKey'", false)
+            ->assertSee('prefill-probe-key', false);
+    }
+
+    public function test_production_never_prints_the_key(): void
+    {
+        config(['unifi_mock.api_key' => 'prefill-probe-key']);
+        $this->app['env'] = 'production';
+
+        $this->get('/docs')->assertOk()->assertDontSee('prefill-probe-key', false);
+    }
+
     public function test_the_document_has_one_operation_per_manifest_entry(): void
     {
         $doc = $this->getJson('/openapi.json')->assertOk()->json();

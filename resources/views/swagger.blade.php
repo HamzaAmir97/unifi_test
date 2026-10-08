@@ -20,6 +20,11 @@
         tryItOutEnabled: true,
         docExpansion: 'none',
         filter: true,
+        onComplete: () => {
+            // Outside production the local key is pre-filled so "Try it out" works at once.
+            const key = @json($prefillKey);
+            if (key) window.ui.preauthorizeApiKey('ApiKey', key);
+        },
     });
 </script>
 </body>

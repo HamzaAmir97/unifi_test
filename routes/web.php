@@ -18,5 +18,8 @@ Route::get('/', fn () => response()->json([
 ]));
 
 // Swagger UI over an OpenAPI document generated from the manifest on every request.
-Route::get('docs', fn () => view('swagger'));
+// Outside production the configured key is pre-filled in Authorize; production never prints it.
+Route::get('docs', fn () => view('swagger', [
+    'prefillKey' => app()->environment('production') ? null : config('unifi_mock.api_key'),
+]));
 Route::get('openapi.json', fn (OpenApiBuilder $builder) => response()->json($builder->build(), 200, [], JSON_UNESCAPED_SLASHES));
